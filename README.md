@@ -21,6 +21,13 @@ flatpak remote-add --system --no-gpg-verify arrsa-systemes oci+https://zelsher.g
 Pas de signature GPG sur un dépôt OCI : l'empreinte dans l'index protège le paquet, TLS protège
 l'index.
 
+## Créer un système
+
+[`modele/`](modele/LISEZMOI-MODELE.md) est la base d'un nouveau système (fiche, identité et son
+test, lecture de la norme d'apparence d'ARRSA, Flatpak, publication) ; `outils/nouveau-systeme.py`
+la copie en remplaçant code et nom. Le chemin complet (trois tests, réservation du code dans le
+registre d'ARRSA, dépôt privé) : skill `creer-systeme` d'ARRSA, norme `docs/systemes.md` d'ARRSA.
+
 ## Publier un système
 
 1. Le dépôt du système a un manifeste `flatpak-builder` qui installe sa fiche

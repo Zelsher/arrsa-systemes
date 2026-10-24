@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.arrsa.@Nom@</id>
+  <name>@Nom@</name>
+  <summary>@BUT@</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <description>
+    <p>@BUT@</p>
+  </description>
+  <launchable type="desktop-id">org.arrsa.@Nom@.desktop</launchable>
+  <provides><binary>@nom@</binary></provides>
+  <!-- La version que montrent le hangar et Bazaar : la monter, puis pousser l'étiquette vX.Y.Z. -->
+  <releases><release version="0.1.0" date="@DATE@"/></releases>
+</component>

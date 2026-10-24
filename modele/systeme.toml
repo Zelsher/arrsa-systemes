@@ -1,0 +1,15 @@
+# Fiche d'identité d'un système (norme : ~/ARRSA/docs/systemes.md). Seule source du code, du but,
+# de l'état et des liens ; le Flatpak l'embarque (/app/share/arrsa) : ARRSA y lit la plaque de la
+# barre de titre et la baie du hangar.
+[systeme]
+code = "@CODE@"
+nom = "@Nom@"
+nature = "@NATURE@"     # instrument | autonome ; peut changer
+but = "@BUT@"
+naissance = "@DATE@"
+etat = "actif"          # actif | pause | abandon | absorbe
+absorbe_par = ""
+
+[liens]
+depend_de = []          # codes sans lesquels il ne marche pas ("S0" = l'API d'ARRSA)
+utilise = []            # codes dont il se sert s'ils sont là

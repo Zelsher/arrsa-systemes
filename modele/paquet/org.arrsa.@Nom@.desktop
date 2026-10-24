@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=@Nom@
+Comment=@BUT@
+Exec=@nom@
+Icon=org.arrsa.@Nom@
+Terminal=false
+Categories=Utility;
+StartupWMClass=org.arrsa.@Nom@
+SingleMainWindow=true

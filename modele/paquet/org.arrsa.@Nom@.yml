@@ -1,0 +1,44 @@
+# Le Flatpak de @Nom@ (@CODE@). Construire et installer en local : sh outils/flatpak.sh
+# Base : io.qt.PySide.BaseApp (PySide6) sur le runtime KDE de Flathub, comme S1 Atlas ; rien de
+# PySide n'est recompilé. Règles (~/ARRSA/docs/systemes.md) : runtime de Flathub, aucune source
+# téléchargée sans sha256, permissions au plus juste, chacune commentée.
+id: org.arrsa.@Nom@
+runtime: org.kde.Platform
+runtime-version: '6.11'
+sdk: org.kde.Sdk
+base: io.qt.PySide.BaseApp
+base-version: '6.11'
+command: @nom@
+build-options:
+  no-debuginfo: true
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # apparence d'ARRSA OS : couleurs et polices de KDE, norme publique d'ARRSA (lecture seule)
+  - --filesystem=xdg-config/kdeglobals:ro
+  - --filesystem=xdg-data/themes/arrsa:ro
+cleanup-commands:
+  - /app/cleanup-BaseApp.sh
+modules:
+  - name: @nom@
+    buildsystem: simple
+    build-commands:
+      - SITE=$(python3 -c "import sysconfig; print(sysconfig.get_path('purelib', vars={'base':'/app'}))");
+        mkdir -p $SITE && cp -r @nom@ $SITE/
+      - printf '#!/bin/sh\nexec python3 -m @nom@ "$@"\n' > @nom@.sh && install -Dm755 @nom@.sh /app/bin/@nom@
+      - install -Dm644 paquet/org.arrsa.@Nom@.desktop -t /app/share/applications
+      # la fiche voyage avec le paquet : ARRSA y lit la plaque de la barre de titre et la baie du hangar
+      - install -Dm644 systeme.toml -t /app/share/arrsa
+      - install -Dm644 paquet/org.arrsa.@Nom@.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 paquet/icone.svg /app/share/icons/hicolor/scalable/apps/org.arrsa.@Nom@.svg
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - .venv
+          - .git
+          - .flatpak-builder
+          - construction
+          - tests

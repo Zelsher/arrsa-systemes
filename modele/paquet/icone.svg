@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Icône de départ : une plaque coupée (norme des fenêtres d'ARRSA) ; à remplacer par celle du système. -->
+  <path d="M14,4 H60 V50 L50,60 H4 V14 Z" fill="#111111" stroke="#ff2d95" stroke-width="3"/>
+  <rect x="16" y="44" width="20" height="4" fill="#ff2d95"/>
+</svg>
