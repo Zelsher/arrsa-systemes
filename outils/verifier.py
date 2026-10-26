@@ -361,26 +361,38 @@ def verifier_publication(v: Verif, fiche: dict, version: str | None, registre_pa
             (rf"manifeste:\s*paquet/{re.escape(id_appli)}\.yml\b", f"manifeste: paquet/{id_appli}.yml"),
             (rf"appli:\s*{re.escape(id_appli)}\s*[,}}\n]", f"appli: {id_appli}"),
             (rf"paquet:\s*{re.escape(paquet)}\s*[,}}\n]", f"paquet: {paquet}"),
+            (r"contents:\s*write", "contents: write (la publication à la main committe la version et pose l'étiquette)"),
         ]
         for motif, quoi in attendus:
             if not re.search(motif, texte + "\n"):
                 v.ecart("publication-flux", f, f"{quoi} manque", sec)
+    meta_f = f"paquet/{id_appli}.metainfo.xml"
+    meta = v.lire(meta_f) or ""
+    cle = lambda x: tuple(int(n) for n in x.split("."))  # noqa: E731
+    publiees = re.findall(r'<release[^>]*\bversion="([^"]+)"', meta)
+    if version:
+        if any(not VERSION.match(p) for p in publiees):
+            v.ecart("version-etiquette", meta_f, "chaque <release version> en X.Y.Z", sec)
+        elif any(cle(a) <= cle(b) for a, b in zip(publiees, publiees[1:])):
+            v.ecart("version-etiquette", meta_f, "<release> de la plus récente à la plus ancienne, sans doublon", sec)
     if version and (v.d / ".git").exists():
         try:
             sortie = subprocess.run(["git", "-C", str(v.d), "tag", "--list", "v*"],
                                     capture_output=True, text=True, check=True).stdout
         except (OSError, subprocess.CalledProcessError):
             sortie = ""
-        meta = v.lire(f"paquet/{id_appli}.metainfo.xml") or ""
-        publiees = set(re.findall(r'<release[^>]*\bversion="([^"]+)"', meta))
         etiquettes = [t[1:] for t in sortie.split() if VERSION.match(t[1:])]
         for t in etiquettes:
             if t not in publiees:
-                v.ecart("version-etiquette", f"paquet/{id_appli}.metainfo.xml",
-                        f"étiquette v{t} sans <release version=\"{t}\">", sec)
-        cle = lambda x: tuple(int(n) for n in x.split("."))  # noqa: E731
+                v.ecart("version-etiquette", meta_f, f"étiquette v{t} sans <release version=\"{t}\">", sec)
+            # l'étiquette marque le commit dont le metainfo dit cette version, et aucun autre
+            fait = subprocess.run(["git", "-C", str(v.d), "show", f"v{t}:{meta_f}"], capture_output=True, text=True)
+            m = re.search(r'<release[^>]*\bversion="([^"]+)"', fait.stdout) if fait.returncode == 0 else None
+            if not m or m.group(1) != t:
+                v.ecart("version-etiquette", meta_f, f"l'étiquette v{t} est posée sur un commit dont le metainfo dit "
+                        f"{m.group(1) if m else 'aucune version'}", sec)
         if etiquettes and cle(max(etiquettes, key=cle)) > cle(version):
-            v.ecart("version-etiquette", f"paquet/{id_appli}.metainfo.xml",
+            v.ecart("version-etiquette", meta_f,
                     f"<release> {version} plus vieille que l'étiquette v{max(etiquettes, key=cle)}", sec)
 
 

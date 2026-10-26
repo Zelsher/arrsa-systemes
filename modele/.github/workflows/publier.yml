@@ -1,12 +1,19 @@
 # Publier @Nom@ dans le catalogue des systèmes d'ARRSA (ADR 0140 d'ARRSA, dépôt Zelsher/arrsa-systemes) :
 # Flatpak construit et poussé en image privée ghcr.io/zelsher/systemes-@nom@, que l'index lisent les
-# machines. À chaque étiquette de version (v0.2.0…), ou à la main (onglet Actions, « Publier » du hangar).
+# machines. À chaque étiquette de version (v0.2.0…), ou à la main (onglet Actions, « Publier » du hangar) :
+# alors la version monte d'elle-même (patch par défaut) et l'étiquette est posée par le flux commun.
 name: Publier
 
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      montee:
+        description: Version à monter (docs/systemes.md d'ARRSA, « Publier »)
+        type: choice
+        options: [patch, minor, major]
+        default: patch
 
 concurrency:
   group: publier
@@ -16,9 +23,10 @@ jobs:
   publier:
     uses: Zelsher/arrsa-systemes/.github/workflows/publier.yml@main
     permissions:
-      contents: read
+      contents: write    # commit de la version et étiquette vX.Y.Z (publication à la main)
       packages: write
     with:
       manifeste: paquet/org.arrsa.@Nom@.yml
       appli: org.arrsa.@Nom@
       paquet: systemes-@nom@
+      montee: ${{ inputs.montee || 'patch' }}

@@ -163,9 +163,31 @@ class Systeme(unittest.TestCase):
         self.assertEqual(self.regles(), [])
         git("tag", "v0.2.0")
         self.assertEqual(self.regles(), ["version-etiquette"])
+        git("tag", "-d", "v0.2.0")
+        # la version montée comme le fait la publication : <release> en tête, commit, étiquette
+        meta = self.d / "paquet/org.arrsa.Vigie.metainfo.xml"
+        texte, nouvelle = charger("version").monter(meta.read_text(encoding="utf-8"), "patch", "2026-10-27")
+        meta.write_text(texte, encoding="utf-8")
+        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-am", "Version " + nouvelle)
+        git("tag", "v" + nouvelle)
+        self.assertEqual((nouvelle, self.regles()), ("0.1.1", []))
+        # une étiquette sur un commit dont le metainfo dit une autre version
+        git("tag", "v0.1.2", "HEAD~1")
+        texte, _ = charger("version").monter(texte, "patch", "2026-10-28")
+        meta.write_text(texte, encoding="utf-8")
+        self.assertEqual(self.regles(), ["version-etiquette"])
+
+    def test_releases_dans_l_ordre(self):
+        self.remplacer("paquet/org.arrsa.Vigie.metainfo.xml", '<release version="0.1.0"',
+                       '<release version="0.1.0" date="2026-10-01"/><release version="0.2.0"')
+        self.assertEqual(self.regles(), ["version-etiquette"])
 
     def test_publication(self):
         self.remplacer(".github/workflows/publier.yml", "paquet: systemes-vigie", "paquet: autre")
+        self.assertEqual(self.regles(), ["publication-flux"])
+
+    def test_publication_peut_ecrire_la_version(self):
+        self.remplacer(".github/workflows/publier.yml", "contents: write", "contents: read")
         self.assertEqual(self.regles(), ["publication-flux"])
 
     def test_claude_md(self):

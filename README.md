@@ -47,4 +47,5 @@ avec son jeton éphémère et republie l'index s'il a changé. Les systèmes n'�
 aucune clé durable ne peut modifier ce que les machines installent.
 
 Outils : `outils/catalogue.py` (l'index depuis les images), `outils/catalogue-depuis-registre.py`
-(la liste depuis le registre d'ARRSA), `outils/verifier.py` (la norme), `outils/nouveau-systeme.py`.
+(la liste depuis le registre d'ARRSA), `outils/verifier.py` (la norme), `outils/nouveau-systeme.py`,
+`outils/version.py` (la version du metainfo, montée par `publier.yml` à chaque publication à la main).

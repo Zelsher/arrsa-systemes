@@ -7,11 +7,18 @@
 #   jobs:
 #     publier:
 #       uses: Zelsher/arrsa-systemes/.github/workflows/publier.yml@main
-#       permissions: { contents: read, packages: write }
-#       with: { manifeste: paquet/org.arrsa.Atlas.yml, appli: org.arrsa.Atlas, paquet: systemes-atlas }
+#       permissions: { contents: write, packages: write }
+#       with: { manifeste: paquet/org.arrsa.Atlas.yml, appli: org.arrsa.Atlas, paquet: systemes-atlas,
+#               montee: "${{ inputs.montee || 'patch' }}" }
 #
-# Après la première publication : ligne dans systemes.toml, et dans les réglages du paquet,
-# « Manage Actions access » → arrsa-systemes, rôle Read.
+# Version (docs/systemes.md d'ARRSA, « Publier ») : lancée à la main (« Publier » du hangar, onglet
+# Actions), la publication monte la version du metainfo (patch par défaut), la committe sur la branche
+# et pose l'étiquette vX.Y.Z, puis publie cette étiquette ; partie d'une étiquette vX.Y.Z poussée, elle
+# vérifie que le metainfo dit la même version. Une étiquette poussée avec le jeton du flux ne relance
+# aucun flux (règle de GitHub) : pas de double publication. D'où contents: write.
+#
+# Après la première publication : dans les réglages du paquet, « Manage Actions access » →
+# arrsa-systemes, rôle Read ; puis catalogue = true au registre d'ARRSA et systemes.toml régénéré.
 name: Publier un système
 
 on:
@@ -29,6 +36,11 @@ on:
         description: Nom de l'image sur ghcr.io, sans le propriétaire (systemes-atlas)
         required: true
         type: string
+      montee:
+        description: "Publication à la main : patch, minor ou major"
+        required: false
+        type: string
+        default: patch
       branche:
         description: Branche Flatpak
         required: false
@@ -36,7 +48,47 @@ on:
         default: stable
 
 jobs:
+  version:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      etiquette: ${{ steps.version.outputs.etiquette }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Zelsher/arrsa-systemes
+          ref: main
+          path: .arrsa-systemes
+      - id: version
+        env:
+          METAINFO: paquet/${{ inputs.appli }}.metainfo.xml
+          MONTEE: ${{ inputs.montee }}
+        run: |
+          outil=.arrsa-systemes/outils/version.py
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            v=$(python3 "$outil" lire "$METAINFO")
+            [ "$GITHUB_REF_NAME" = "v$v" ] || { echo "::error::étiquette $GITHUB_REF_NAME, metainfo $v : monter <release> avant d'étiqueter"; exit 1; }
+          else
+            v=$(python3 "$outil" monter "$METAINFO" "$MONTEE")
+            if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+              echo "::error::v$v existe déjà sans sa <release> sur $GITHUB_REF_NAME"; exit 1
+            fi
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -q -m "Version $v" -- "$METAINFO"
+            git tag -a "v$v" -m "Version $v"
+            git push -q origin "HEAD:refs/heads/$GITHUB_REF_NAME" "refs/tags/v$v"
+          fi
+          echo "etiquette=v$v" >> "$GITHUB_OUTPUT"
+          echo "Version : v$v"
+
   publier:
+    needs: version
     runs-on: ubuntu-26.04
     timeout-minutes: 90
     permissions:
@@ -50,6 +102,8 @@ jobs:
       PROPRIETAIRE: ${{ github.repository_owner }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.version.outputs.etiquette }}
 
       - name: Outils
         run: |
