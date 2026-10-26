@@ -3,7 +3,7 @@
 
     python3 outils/catalogue-depuis-registre.py ~/ARRSA/registre-systemes.toml [--verifier]
 
-Le registre d'ARRSA (`registre-systemes.toml`) fait foi pour les systèmes (ADR 0172 d'ARRSA) : il
+Le registre d'ARRSA (`registre-systemes.toml`) fait foi pour les systèmes (ADR 0173 d'ARRSA) : il
 réserve le code avant la naissance du dépôt, et dit pour chacun son appli, son paquet ghcr.io et
 s'il est au catalogue (`catalogue = true`, posé après le geste « Manage Actions access » du paquet :
 avant, son image serait illisible et ferait échouer tout l'index). Ce dépôt-ci est public et son robot
@@ -20,7 +20,7 @@ LISTE = Path(__file__).resolve().parent.parent / "systemes.toml"
 CODE = re.compile(r"^S[1-9][0-9]*$")
 EN_TETE = """\
 # Les systèmes du catalogue : le robot lit ghcr.io/zelsher/<paquet>:latest de chacun.
-# GÉNÉRÉ depuis registre-systemes.toml d'ARRSA (qui fait foi, ADR 0172) : ne pas modifier à la main.
+# GÉNÉRÉ depuis registre-systemes.toml d'ARRSA (qui fait foi, ADR 0173) : ne pas modifier à la main.
 #   python3 outils/catalogue-depuis-registre.py ~/ARRSA/registre-systemes.toml
 # Un système y entre quand le registre dit catalogue = true, c'est-à-dire après sa première
 # publication et le geste « Manage Actions access » → arrsa-systemes, rôle Read, sur son paquet.

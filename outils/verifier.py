@@ -7,7 +7,7 @@ Déterministe et sans réseau : il lit les fichiers du dépôt (ceux que suit gi
 ses étiquettes locales. Code de sortie : 0 conforme, 1 au moins un écart, 2 mauvais appel. Chaque
 écart nomme sa règle et le paragraphe de la norme qui la fonde.
 
-Contrat lu par Horizon (ADR 0171 et 0172 d'ARRSA) : ne pas le changer sans le dire.
+Contrat lu par Horizon (ADR 0171 et 0173 d'ARRSA) : ne pas le changer sans le dire.
   --json     sort `[{"regle": "...", "fichier": "...", "message": "..."}]` (liste vide : conforme) ;
              `fichier` est relatif au dossier, "." pour le dépôt entier.
   --registre ajoute la règle registre-reserve (code réservé, même nom, même appli, même paquet).

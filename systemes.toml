@@ -1,5 +1,5 @@
 # Les systèmes du catalogue : le robot lit ghcr.io/zelsher/<paquet>:latest de chacun.
-# GÉNÉRÉ depuis registre-systemes.toml d'ARRSA (qui fait foi, ADR 0172) : ne pas modifier à la main.
+# GÉNÉRÉ depuis registre-systemes.toml d'ARRSA (qui fait foi, ADR 0173) : ne pas modifier à la main.
 #   python3 outils/catalogue-depuis-registre.py ~/ARRSA/registre-systemes.toml
 # Un système y entre quand le registre dit catalogue = true, c'est-à-dire après sa première
 # publication et le geste « Manage Actions access » → arrsa-systemes, rôle Read, sur son paquet.
