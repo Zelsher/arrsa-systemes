@@ -1,4 +1,7 @@
-"""L'identité du système suit sa fiche, et le paquet l'embarque (~/ARRSA/docs/systemes.md)."""
+"""L'identité du code suit la fiche (~/ARRSA/docs/systemes.md, « Identité dans le code »).
+
+Le paquet (fiche embarquée, norme en lecture seule, StartupWMClass…) est vérifié par
+`python3 ~/Projets/arrsa-systemes/outils/verifier.py .`, commun à tous les systèmes."""
 import tomllib
 from pathlib import Path
 
@@ -12,15 +15,6 @@ def test_identite_suit_la_fiche():
     fiche = tomllib.loads((ICI / "systeme.toml").read_text(encoding="utf-8"))["systeme"]
     assert (@nom@.CODE, @nom@.NOM) == (fiche["code"], fiche["nom"])
     assert @nom@.ID_APPLI == f"org.arrsa.{fiche['nom']}"
-
-
-def test_le_paquet_embarque_la_fiche():
-    """ARRSA lit la plaque dans /app/share/arrsa/systeme.toml ; la fenêtre se relie à son .desktop."""
-    manifeste = (ICI / f"paquet/{@nom@.ID_APPLI}.yml").read_text(encoding="utf-8")
-    assert "install -Dm644 systeme.toml -t /app/share/arrsa" in manifeste
-    assert "--filesystem=xdg-data/themes/arrsa:ro" in manifeste
-    bureau = (ICI / f"paquet/{@nom@.ID_APPLI}.desktop").read_text(encoding="utf-8")
-    assert f"StartupWMClass={@nom@.ID_APPLI}" in bureau
 
 
 def test_norme_absente_valeurs_par_defaut(tmp_path, monkeypatch):

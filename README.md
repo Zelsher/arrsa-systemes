@@ -23,10 +23,12 @@ l'index.
 
 ## Créer un système
 
-[`modele/`](modele/LISEZMOI-MODELE.md) est la base d'un nouveau système (fiche, identité et son
-test, lecture de la norme d'apparence d'ARRSA, Flatpak, publication) ; `outils/nouveau-systeme.py`
-la copie en remplaçant code et nom. Le chemin complet (trois tests, réservation du code dans le
-registre d'ARRSA, dépôt privé) : skill `creer-systeme` d'ARRSA, norme `docs/systemes.md` d'ARRSA.
+La norme est `docs/systemes.md` d'ARRSA, et elle seule. [`modele/`](modele/LISEZMOI-MODELE.md) est
+la base d'un nouveau système, que `outils/nouveau-systeme.py` copie en remplaçant code et nom ;
+`outils/verifier.py <dossier> [--json]` juge un dépôt de système contre la norme (règles :
+« Règles vérifiées » de la norme ; tests : `python3 -m unittest discover -s tests`). Le chemin
+complet (trois tests, réservation du code dans le registre d'ARRSA, dépôt privé) : skill
+`creer-systeme` d'ARRSA.
 
 ## Publier un système
 
@@ -35,11 +37,14 @@ registre d'ARRSA, dépôt privé) : skill `creer-systeme` d'ARRSA, norme `docs/s
    inconnues du `.desktop`).
 2. Son intégration continue appelle [`publier.yml`](.github/workflows/publier.yml) (exemple en
    tête du fichier) : le Flatpak part en image privée sur `ghcr.io/zelsher/<paquet>`. Aucun secret.
-3. Une fois, après la première publication : une entrée dans [`systemes.toml`](systemes.toml), et
-   dans les réglages du paquet sur GitHub, « Manage Actions access » → `arrsa-systemes`, rôle Read.
+3. Une fois, après la première publication : dans les réglages du paquet sur GitHub, « Manage
+   Actions access » → `arrsa-systemes`, rôle Read ; puis `catalogue = true` dans le registre d'ARRSA
+   (`registre-systemes.toml`, qui fait foi) et [`systemes.toml`](systemes.toml) régénéré par
+   `outils/catalogue-depuis-registre.py ~/ARRSA/registre-systemes.toml` (jamais écrit à la main).
 
 Le robot [`catalogue.yml`](.github/workflows/catalogue.yml) lit ces images toutes les 15 minutes
 avec son jeton éphémère et republie l'index s'il a changé. Les systèmes n'écrivent jamais ici :
 aucune clé durable ne peut modifier ce que les machines installent.
 
-Outil : `outils/catalogue.py` (l'index depuis les images).
+Outils : `outils/catalogue.py` (l'index depuis les images), `outils/catalogue-depuis-registre.py`
+(la liste depuis le registre d'ARRSA), `outils/verifier.py` (la norme), `outils/nouveau-systeme.py`.
