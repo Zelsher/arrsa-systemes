@@ -134,6 +134,10 @@ def verifier_fiche(v: Verif) -> dict | None:
         v.ecart("fiche-etat", f, f"état « {etat or ''} » : {' | '.join(ETATS)}", sec)
     elif (etat == "absorbe") != bool(absorbe) or (absorbe and not CODE_LIEN.match(absorbe)):
         v.ecart("fiche-etat", f, "absorbe_par : le code du système repreneur si et seulement si etat = absorbe", sec)
+    agent = s.get("agent", False)
+    if not isinstance(agent, bool):
+        v.ecart("fiche-agent", f, "agent : true (un modèle d'IA lit ou agit dans le système) ou false", sec)
+        agent = True  # dans le doute, la règle la plus stricte
     if not str(s.get("but") or "").strip():
         v.ecart("fiche-champs", f, "but vide : une phrase", sec)
     if not re.match(r"^\d{4}-\d{2}-\d{2}$", str(s.get("naissance") or "")):
@@ -148,7 +152,7 @@ def verifier_fiche(v: Verif) -> dict | None:
     if not (isinstance(commandes, list) and commandes and all(isinstance(c, str) and c.strip() for c in commandes)):
         v.ecart("tests-declares", f, '[tests] commandes = ["…"] : au moins une commande de test', "Tests d'un système")
         commandes = None
-    return {"code": code, "nom": nom, "commandes": commandes or []}
+    return {"code": code, "nom": nom, "commandes": commandes or [], "agent": agent}
 
 
 # --- code ------------------------------------------------------------------------------------
@@ -286,7 +290,13 @@ def verifier_paquet(v: Verif, fiche: dict) -> str | None:
                     or arg == "--talk-name=org.freedesktop.secrets"):
                 v.ecart("paquet-portes", f, f"{arg} : un système passe par les portes d'ARRSA, jamais par "
                         "api.sock, ses données ni le trousseau entier", "Portes entre systèmes")
-            if LARGES.match(arg) and EXCEPTION not in commentaire.lower():
+            if "modeles.sock" in arg and not fiche["agent"]:
+                v.ecart("fiche-agent", "systeme.toml", f"le paquet ouvre {arg} (un modèle d'IA) : agent = true dans la fiche",
+                        "Fiche d'identité")
+            if LARGES.match(arg) and fiche["agent"]:
+                v.ecart("paquet-agent-acces-large", f, f"{arg} : un système à agent d'IA n'a jamais d'accès large, "
+                        "même avec une exception (un fichier lu peut le pousser à en lire et envoyer d'autres)", sec)
+            elif LARGES.match(arg) and EXCEPTION not in commentaire.lower():
                 v.ecart("paquet-acces-larges", f, f"{arg} : accès large ; un dossier précis, ou une "
                         f"« {EXCEPTION} : <pourquoi> » dans le commentaire", sec)
             if arg not in FENETRE and not commentaire:

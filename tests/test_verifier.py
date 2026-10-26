@@ -119,6 +119,22 @@ class Systeme(unittest.TestCase):
                        "  - --device=dri\n  # exception norme : lire n'importe quel projet\n  - --filesystem=home:ro\n")
         self.assertEqual(self.regles(), [])
 
+    def test_agent_sans_acces_large(self):
+        """Un système à agent d'IA : pas de home ni de host, même avec une exception écrite."""
+        self.remplacer("systeme.toml", "agent = false", "agent = true")
+        self.remplacer("paquet/org.arrsa.Vigie.yml", "  - --device=dri\n",
+                       "  - --device=dri\n  # exception norme : tout lire\n  - --filesystem=home:ro\n")
+        self.assertEqual(self.regles(), ["paquet-agent-acces-large"])
+        self.remplacer("paquet/org.arrsa.Vigie.yml", "--filesystem=home:ro", "--filesystem=~/Projets:ro")
+        self.assertEqual(self.regles(), [])
+
+    def test_porte_modeles_veut_agent_declare(self):
+        self.remplacer("paquet/org.arrsa.Vigie.yml", "  - --device=dri\n",
+                       "  - --device=dri\n  # le chat\n  - --filesystem=xdg-run/arrsa/modeles.sock\n")
+        self.assertEqual(self.regles(), ["fiche-agent"])
+        self.remplacer("systeme.toml", "agent = false", 'agent = "oui"')
+        self.assertEqual(self.regles(), ["fiche-agent"])
+
     def test_sources_sans_empreinte(self):
         source = ("      - type: dir\n        path: ..\n")
         archive = ("      - type: archive\n        url: https://exemple.org/x.tar.xz\n")

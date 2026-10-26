@@ -8,6 +8,7 @@ but = "@BUT@"
 naissance = "@DATE@"
 etat = "actif"          # actif | pause | abandon | absorbe
 absorbe_par = ""
+agent = false           # true si un modèle d'IA lit ou agit dans le système : jamais d'accès large
 
 [liens]
 depend_de = []          # codes sans lesquels il ne marche pas ("S0" = l'API d'ARRSA)
