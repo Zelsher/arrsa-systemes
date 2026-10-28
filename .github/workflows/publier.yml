@@ -41,6 +41,13 @@ on:
         required: false
         type: string
         default: patch
+      executeur:
+        description: >-
+          Où construire : l'étiquette du runner de la machine (vars.SYSTEME_RUNNER du dépôt, posée par
+          « Brancher » du hangar d'ARRSA), sinon un exécuteur de GitHub (minutes payantes en dépôt privé)
+        required: false
+        type: string
+        default: ubuntu-26.04
       branche:
         description: Branche Flatpak
         required: false
@@ -49,7 +56,7 @@ on:
 
 jobs:
   version:
-    runs-on: ubuntu-26.04
+    runs-on: ${{ inputs.executeur || 'ubuntu-26.04' }}
     timeout-minutes: 10
     permissions:
       contents: write
@@ -89,7 +96,7 @@ jobs:
 
   publier:
     needs: version
-    runs-on: ubuntu-26.04
+    runs-on: ${{ inputs.executeur || 'ubuntu-26.04' }}
     timeout-minutes: 90
     permissions:
       contents: read
@@ -106,9 +113,12 @@ jobs:
           ref: refs/tags/${{ needs.version.outputs.etiquette }}
 
       - name: Outils
+        # La machine d'ARRSA les a dans son image (flatpak-builder, skopeo, jq) ; un exécuteur de GitHub les installe.
         run: |
-          sudo apt-get update -q
-          sudo apt-get install -y -q flatpak flatpak-builder skopeo jq
+          if [ "$RUNNER_ENVIRONMENT" = github-hosted ]; then
+            sudo apt-get update -q
+            sudo apt-get install -y -q flatpak flatpak-builder skopeo jq
+          fi
           flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
       - name: Construire
@@ -126,6 +136,9 @@ jobs:
       - name: Pousser sur ghcr.io
         env:
           JETON: ${{ secrets.GITHUB_TOKEN }}
+          # Identifiants du passage dans son dossier : sur la machine, le jeton du job écraserait sinon
+          # ~/.config/containers/auth.json de l'utilisateur (ghcr.io, image d'ARRSA).
+          REGISTRY_AUTH_FILE: ${{ runner.temp }}/auth.json
         run: |
           image="ghcr.io/${PROPRIETAIRE,,}/$PAQUET"
           echo "$JETON" | skopeo login ghcr.io -u "${{ github.actor }}" --password-stdin

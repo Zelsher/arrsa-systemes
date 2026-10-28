@@ -30,3 +30,4 @@ jobs:
       appli: org.arrsa.@Nom@
       paquet: systemes-@nom@
       montee: ${{ inputs.montee || 'patch' }}
+      executeur: ${{ vars.SYSTEME_RUNNER || 'ubuntu-26.04' }}  # la machine branchée, sinon GitHub
